@@ -1,0 +1,28 @@
+#!/bin/bash
+# Mock of `app_process ... WaaAp <cmd>`: AP state and credential pairs kept in $MOCK files.
+#   $MOCK/apon     AP enabled           $MOCK/apmode   AP mode (default 2 = projection)
+#   $MOCK/cfg      E: pairs equal, D: differ     $MOCK/hostapd  pair the running AP uses
+echo "waa $3 $4" >> "$MOCK/calls"
+cfg=$(cat "$MOCK/cfg" 2>/dev/null || echo E)
+case "$3" in
+    status)
+        if [ -f "$MOCK/apon" ]; then
+            echo api.getWifiApEnabledState=13
+            echo "api.getWifiApMode=$(cat "$MOCK/apmode" 2>/dev/null || echo 2)"
+        else
+            echo api.getWifiApEnabledState=11
+            echo api.getWifiApMode=0
+        fi
+        if [ "$cfg" = E ]; then echo cfg.ssid_equal=true; echo cfg.psk_equal=true
+        else echo cfg.ssid_equal=false; echo cfg.psk_equal=false; fi
+        if [ -f "$MOCK/apon" ] && [ "$(cat "$MOCK/hostapd" 2>/dev/null)" = E ]; then
+            echo hostapd.ssid_eq_connectivity=true
+            echo hostapd.psk_eq_connectivity=true
+        fi
+        echo result=ok ;;
+    on) touch "$MOCK/apon"; echo "$cfg" > "$MOCK/hostapd"; echo result=ok ;;
+    off) rm -f "$MOCK/apon"; echo result=ok ;;
+    adopt) echo E > "$MOCK/cfg"; echo adopt=done; echo result=ok ;;
+    backup) echo x > "$4"; echo backup=written; echo result=ok ;;
+    *) echo result=ok ;;
+esac

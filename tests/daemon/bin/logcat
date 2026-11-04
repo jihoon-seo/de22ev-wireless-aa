@@ -1,0 +1,21 @@
+#!/bin/bash
+# Mock logcat: one stale buffered ACC line (must be ignored), the daemon's own marker,
+# then the scenario's ACC transitions; ends once the daemon's cycle has finished.
+echo "I/WifiService( 556): old line ACTION_ACC_STATUS_CHANGED:0->255 [x]"
+while [ ! -f "$MOCK/marker" ]; do /usr/bin/sleep 0.05; done
+echo "I/waad( 9): $(cat "$MOCK/marker")"
+idle() {   # wait until no cycle runs (cycle.lock gone) for a moment
+    n=0
+    while [ "$n" -lt 400 ]; do
+        [ -d "$MOCK/data/cycle.lock" ] || { /usr/bin/sleep 0.3; [ -d "$MOCK/data/cycle.lock" ] || return 0; }
+        /usr/bin/sleep 0.05; n=$((n+1))
+    done
+}
+idle
+if [ -f "$MOCK/acc_events" ]; then
+    while read -r L; do
+        echo "D/WifiService( 556): WIFI Received ACTION_ACC_STATUS_CHANGED:$L [OFF(255),ACCON(0),LOGINCON(1),ADM(2),SYSTEMREADY(5),ACC_OFF_DELAY_MODE(6)]"
+        /usr/bin/sleep 1.5
+        idle
+    done < "$MOCK/acc_events"
+fi
