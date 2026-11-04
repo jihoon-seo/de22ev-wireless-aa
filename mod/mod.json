@@ -1,0 +1,26 @@
+{
+  "id": "de22ev-wireless-aa",
+  "name": "DE22EV KR wireless Android Auto AP",
+  "version": "1.0.2",
+  "hmgapi": ">=1.0.0",
+  "authors": [
+    "local build"
+  ],
+  "description": "At engine start: projection AP on, broadcasting this car's own projection credentials (the ones the AA sink sends). No AA sink restart. AP off at engine off.",
+  "system": {
+    "model": "DE22EV",
+    "region": "KOR",
+    "firmware": "260902",
+    "platform": "tcc897x",
+    "android": "4.4.2"
+  },
+  "services": [
+    {
+      "name": "waad",
+      "script": "svc/waad.sh",
+      "user": "root",
+      "start": "android",
+      "restart": true
+    }
+  ]
+}
