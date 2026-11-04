@@ -1,0 +1,36 @@
+Wireless Android Auto AP (HMG-API mod de22ev-wireless-aa 1.0.2) - for DE22EV.KOR V039 260902 only
+
+What it does (at every engine start)
+- Makes the AP broadcast this car's own projection SSID/password, the one the car's AA app tells the phone.
+  The values are read from each car (ConnectivitySSID/ConnectivityPSK); the package contains none.
+  (The hotspot name/password in Settings becomes the same value. The originals are backed up.)
+- Turns the wireless projection AP (connectivity mode) on.
+- Does not restart the car's AA app.
+  After a cold boot, toggle the phone's Bluetooth off and on and wireless AA connects
+  (after a short engine off/on it connects by itself).
+- At engine off it turns the AP off, and never turns it on while the engine is off.
+- Leaves things alone while the car's client Wi-Fi (Wi-Fi tab) or the normal hotspot is on.
+Requires: NEMESIS and HMG-API (hmgapid) installed. The mod is signed with its author's own key, so
+install.txt carries a "not on HMG-API's trusted author list" warning; the install goes ahead.
+It updates an earlier version (1.0.0/1.0.1) in place, and the daemon restarts on the new version at once.
+
+USB stick
+- Unzip and put NEMESIS.data, NEMESIS.sh and the WAA_AA_MOD folder at the top of the USB stick.
+- The first line of WAA_AA_MOD/MODE.txt: install (default) / status / uninstall
+
+1) Install or update (MODE.txt = install)
+1. Start the car and wait about a minute after boot.
+2. Insert the USB stick and choose Yes in Nemesis. It finishes within 30 seconds. Remove the stick.
+   STATUS.txt: INSTALLED_WAAD_RUNNING means it worked.
+
+2) Check
+- After a cold boot, wireless AA should connect when you toggle the phone's Bluetooth; after a short
+  engine off/on it should connect by itself.
+- If something is wrong, set MODE.txt to status, run the kit, and keep the WAA_AA_MOD_* folders and
+  WAA_AA_MOD_LAST.txt from the stick.
+
+3) Remove (MODE.txt = uninstall)
+- Turns the mod off and removes it, restores the original hotspot name/password, turns the AP off
+  and sets wifi_ap_on=0.
+
+On the car: mod /data/hmgapi/mods/de22ev-wireless-aa, log /data/hmgapi/logs/de22ev-wireless-aa/waad.log
