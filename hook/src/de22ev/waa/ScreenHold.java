@@ -21,6 +21,7 @@ public final class ScreenHold {
 
     /** a projection request of session (focus); true: answer native and don't take the screen */
     public synchronized boolean hold(Object session, int focus, int projected, String mode, String screen, boolean enabled) {
+        if (session != null && held.get() != session) held = new WeakReference<Object>(null); // another session now
         if (session == null || focus != projected || !enabled || !"button".equals(screen)) return false;
         if (!"Wireless".equals(mode) || activityUp || entered.containsKey(session)) return false;
         held = new WeakReference<Object>(session);
@@ -35,6 +36,11 @@ public final class ScreenHold {
     /** the sink's MainActivity resumed (true) or paused (false) */
     public synchronized void activity(boolean resumed) {
         activityUp = resumed;
+    }
+
+    /** the native answer failed: the sink goes on as stock for this session */
+    public synchronized void release(Object session) {
+        if (held.get() == session) held = new WeakReference<Object>(null);
     }
 
     /** the session held last (null: none, or gone) */

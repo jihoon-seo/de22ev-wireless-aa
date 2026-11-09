@@ -43,6 +43,18 @@ public final class ScreenHoldTest {
         h.activity(false);
         check(!h.hold(s3, PROJECTED, PROJECTED, null, "button", true), "unknown session mode: stock");
         check(!h.hold(null, PROJECTED, PROJECTED, "Wireless", "button", true), "no session object: stock");
+        // a failed native answer releases the hold: the sink goes on as stock, its startMainActivity too
+        ScreenHold f = new ScreenHold();
+        Object s4 = new Object();
+        check(f.hold(s4, PROJECTED, PROJECTED, "Wireless", "button", true), "held before the answer");
+        f.release(s4);
+        check(f.held() == null && !f.blockStart("Wireless", "button", true), "released: nothing held, startMainActivity runs");
+        // a request from another session (a wired one after a held wireless one) ends the old hold
+        ScreenHold w = new ScreenHold();
+        Object wl = new Object(), usb = new Object();
+        check(w.hold(wl, PROJECTED, PROJECTED, "Wireless", "button", true), "wireless held");
+        check(!w.hold(usb, PROJECTED, PROJECTED, "USB", "button", true), "the wired session's request: stock");
+        check(w.held() == null && !w.blockStart("Wireless", "button", true), "the old wireless hold no longer blocks the wired session");
         System.out.println(failed == 0 ? "hold: all checks passed" : "hold: " + failed + " check(s) failed");
         System.exit(failed == 0 ? 0 : 1);
     }

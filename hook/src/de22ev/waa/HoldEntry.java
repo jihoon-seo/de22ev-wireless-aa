@@ -42,7 +42,8 @@ public final class HoldEntry extends ModEntry {
                 @Override
                 protected void afterHookedMethod(Param p) {
                     try {
-                        hold.focusMode(session(p), (Integer) p.args[0], focus(cl, "VIDEO_FOCUS_PROJECTED", 1));
+                        Integer projected = focus(cl, "VIDEO_FOCUS_PROJECTED");
+                        if (projected != null) hold.focusMode(session(p), (Integer) p.args[0], projected);
                     } catch (Throwable t) {
                         mod.error("focus change", t);
                     }
@@ -82,21 +83,27 @@ public final class HoldEntry extends ModEntry {
     }
 
     private void request(ModContext mod, ClassLoader cl, MethodHook.Param p) {
+        Object s = null;
         try {
-            Object s = session(p);
+            s = session(p);
             String mode = (String) Hooks.getObjectField(s, "mSessionMode");
             int focus = (Integer) p.args[0];
-            if (!hold.hold(s, focus, focus(cl, "VIDEO_FOCUS_PROJECTED", 1), mode, screen(mod), mod.enabled())) return;
+            // the sink's own focus values; unreadable: stock (no guessed values sent to the phone)
+            Integer projected = focus(cl, "VIDEO_FOCUS_PROJECTED"), nativeFocus = focus(cl, "VIDEO_FOCUS_NATIVE");
+            if (projected == null || nativeFocus == null) return;
+            if (!hold.hold(s, focus, projected, mode, screen(mod), mod.enabled())) return;
             try {
                 // the sink's own step before it switches: closes its "connecting" dialog
                 Hooks.callMethod(Hooks.getObjectField(s, "mService"), "removeDialogInit");
             } catch (Throwable t) {
                 mod.error("removeDialogInit", t);
             }
-            Hooks.callMethod(s, "setVideoFocus", focus(cl, "VIDEO_FOCUS_NATIVE", 2), -1, true);
+            // as the sink answers when it can't show AA: native, reason -1, unsolicited
+            Hooks.callMethod(s, "setVideoFocus", nativeFocus, -1, true);
             p.setResult(null);
             mod.log("Android Auto connected; the screen stays (screen=button): the Android Auto tile opens it");
         } catch (Throwable t) {
+            hold.release(s); // the sink goes on as stock, its startMainActivity too
             mod.error("focus request (the sink goes on as stock)", t);
         }
     }
@@ -109,11 +116,12 @@ public final class HoldEntry extends ModEntry {
         return mod.settingString("screen", "button");
     }
 
-    static int focus(ClassLoader cl, String field, int fallback) {
+    /** VideoSink's focus constant (null when it can't be read) */
+    static Integer focus(ClassLoader cl, String field) {
         try {
             return Hooks.getStaticIntField(Hooks.findClass(VIDEO_SINK, cl), field);
         } catch (Throwable t) {
-            return fallback;
+            return null;
         }
     }
 }
