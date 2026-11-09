@@ -1,20 +1,41 @@
 #!/bin/bash
-# Mock logcat: one stale buffered ACC line (must be ignored), the daemon's own marker,
-# then the scenario's ACC transitions; ends once the daemon's cycle has finished.
+# Mock logcat: one stale buffered ACC line (must be ignored), the AA sink's buffered lines
+# ($MOCK/aa_boot), the daemon's own marker, then live AA lines ($MOCK/aa_live, appended by the
+# mock kill) and the scenario's ACC transitions; ends once the daemon's cycle has finished.
 echo "I/WifiService( 556): old line ACTION_ACC_STATUS_CHANGED:0->255 [x]"
+[ -f "$MOCK/aa_boot" ] && cat "$MOCK/aa_boot"
 while [ ! -f "$MOCK/marker" ]; do /usr/bin/sleep 0.05; done
 echo "I/waad( 9): $(cat "$MOCK/marker")"
+acc() { echo "D/WifiService( 556): WIFI Received ACTION_ACC_STATUS_CHANGED:$1 [OFF(255),ACCON(0),LOGINCON(1),ADM(2),SYSTEMREADY(5),ACC_OFF_DELAY_MODE(6)]"; }
+emitted=0
+lines() {   # live AA lines (the mock kill appends the new sink's)
+    if [ -f "$MOCK/aa_live" ]; then
+        n=$(wc -l < "$MOCK/aa_live")
+        while [ "$emitted" -lt "$n" ]; do emitted=$((emitted+1)); sed -n "${emitted}p" "$MOCK/aa_live"; done
+    fi
+}
+pump() {   # live AA lines, and ACC changes timed on what the daemon logged
+    lines
+    if [ -f "$MOCK/accoff_during" ] && [ ! -f "$MOCK/accoff_done" ] && grep -q "AP ready" "$MOCK/out.log" 2>/dev/null; then
+        touch "$MOCK/accoff_done"; acc "2->6"
+    fi
+    if [ -f "$MOCK/accgap" ] && [ ! -f "$MOCK/accgap_done" ] && grep -q "K2 #1" "$MOCK/out.log" 2>/dev/null; then
+        # the restarted sink's handshake comes first (about a second after the restart), then engine off/on
+        touch "$MOCK/accgap_done"; /usr/bin/sleep 0.5; lines; acc "2->6"; /usr/bin/sleep 1.5; lines; acc "6->2"
+    fi
+}
 idle() {   # wait until no cycle runs (cycle.lock gone) for a moment
     n=0
-    while [ "$n" -lt 400 ]; do
-        [ -d "$MOCK/data/cycle.lock" ] || { /usr/bin/sleep 0.3; [ -d "$MOCK/data/cycle.lock" ] || return 0; }
+    while [ "$n" -lt 1200 ]; do
+        pump
+        [ -d "$MOCK/data/cycle.lock" ] || { /usr/bin/sleep 0.3; pump; [ -d "$MOCK/data/cycle.lock" ] || return 0; }
         /usr/bin/sleep 0.05; n=$((n+1))
     done
 }
 idle
 if [ -f "$MOCK/acc_events" ]; then
     while read -r L; do
-        echo "D/WifiService( 556): WIFI Received ACTION_ACC_STATUS_CHANGED:$L [OFF(255),ACCON(0),LOGINCON(1),ADM(2),SYSTEMREADY(5),ACC_OFF_DELAY_MODE(6)]"
+        acc "$L"
         /usr/bin/sleep 1.5
         idle
     done < "$MOCK/acc_events"

@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "am $*" >> "$MOCK/calls"
+[ "$1" = startservice ] && echo 900 > "$MOCK/sinkpid"
+exit 0

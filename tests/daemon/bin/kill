@@ -1,0 +1,12 @@
+#!/bin/bash
+# Mock kill of the AA sink: it respawns with the next pid (unless $MOCK/nosink_respawn) and,
+# per scenario, negotiates again ([Ready] 1) and starts a session (setGpmStatus 6)
+echo "kill $*" >> "$MOCK/calls"
+old=$(cat "$MOCK/sinkpid" 2>/dev/null || echo 824)
+if [ -f "$MOCK/nosink_respawn" ]; then rm -f "$MOCK/sinkpid"; exit 0; fi
+new=$((old + 1)); echo "$new" > "$MOCK/sinkpid"
+if [ -f "$MOCK/kick_ready" ] || [ -f "$MOCK/kick_session" ]; then
+    echo "I/AAProjection( $new): GalReceiverService : send requestWLDeviceReadyStatusUpdate:  [Ready] 1" >> "$MOCK/aa_live"
+fi
+[ -f "$MOCK/kick_session" ] && echo "D/AAProjection( $new): GalConnectionSession : Wireless << setGpmStatus: 6" >> "$MOCK/aa_live"
+exit 0

@@ -1,0 +1,6 @@
+#!/bin/bash
+# Mock toolbox ps: the AA sink while $MOCK/sinkpid exists
+echo "USER     PID   PPID  VSIZE  RSS     WCHAN    PC         NAME"
+echo "root      1     0     1000   500   ffffffff 00000000 S /init"
+[ -f "$MOCK/sinkpid" ] && echo "u0_a20    $(cat "$MOCK/sinkpid")   200   9000   900   ffffffff 00000000 S com.google.android.projection.sink"
+exit 0
