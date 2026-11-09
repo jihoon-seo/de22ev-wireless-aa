@@ -19,6 +19,10 @@ pump() {   # live AA lines, and ACC changes timed on what the daemon logged
     if [ -f "$MOCK/accoff_during" ] && [ ! -f "$MOCK/accoff_done" ] && grep -q "AP ready" "$MOCK/out.log" 2>/dev/null; then
         touch "$MOCK/accoff_done"; acc "2->6"
     fi
+    if [ -f "$MOCK/accfast" ] && [ ! -f "$MOCK/accfast_done" ] && grep -q "K2 #1" "$MOCK/out.log" 2>/dev/null; then
+        # engine off and straight on again while the cycle still runs (holds its lock)
+        touch "$MOCK/accfast_done"; /usr/bin/sleep 0.3; lines; acc "2->6"; acc "6->2"
+    fi
     if [ -f "$MOCK/accgap" ] && [ ! -f "$MOCK/accgap_done" ] && grep -q "K2 #1" "$MOCK/out.log" 2>/dev/null; then
         # the restarted sink's handshake comes first (about a second after the restart), then engine off/on
         touch "$MOCK/accgap_done"; /usr/bin/sleep 0.5; lines; acc "2->6"; /usr/bin/sleep 1.5; lines; acc "6->2"

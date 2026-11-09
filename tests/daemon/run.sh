@@ -31,6 +31,7 @@ scenario() {
     [ -f "$M/sink" ] && echo 824 > "$M/sinkpid"
     [ -f "$M/aaready" ] && echo "I/AAProjection(  824): GalReceiverService : send requestWLDeviceReadyStatusUpdate:  [Ready] 1" >> "$M/aa_boot"
     [ -f "$M/aasession" ] && echo "D/AAProjection(  824): GalConnectionSession : Wireless << setGpmStatus: 6" >> "$M/aa_boot"
+    [ -f "$M/aasession_tail" ] && echo "D/AAProjection(  824): GalConnectionSession : Wireless << setGpmStatus: 6 (connected)" >> "$M/aa_boot"
     [ -f "$M/usbsession" ] && echo "D/AAProjection(  824): GalConnectionSession : USB << setGpmStatus: 6" >> "$M/aa_boot"
     sed -e "s#^export PATH=.*#export PATH=$M/bin:\$PATH#" \
         -e "s#/system/bin/app_process#$M/bin/app_process#g" \
@@ -75,6 +76,8 @@ scenario gave_up          "apon sink aaready kick_ready"   "K2 #1|K2 #2|GAVE_UP 
 scenario acc_off_waiting  "apon sink aaready accoff_during" "ACC off: 2->6"              "K2"              ""              "kill"
 scenario acc_off_on_gap   "apon sink aaready kick_ready accgap" "K2 #1|ACC off: 2->6|ACC on: 6->2|no handshake seen" "K2 #2" "kill 824" "kill 825"
 scenario stale_ready      "apon sink aaready aasession accoff_on" "AA session running|ACC on: 6->2|no handshake seen" "K2" "" "kill"
+scenario status_tail      "apon sink aaready aasession_tail" "AA session running"       "K2"              ""              "kill"
+scenario acc_fast_off_on  "apon sink aaready kick_ready accfast" "K2 #1|ACC off: 2->6|ACC on: 6->2|no handshake seen" "K2 #2" "kill 824" "kill 825"
 scenario sta_no_kick      "sta sink aaready"               "SKIP_STA"                    "K2"              ""              "kill"
 scenario no_respawn       "apon sink aaready nosink_respawn" "AA sink did not respawn"   ""                "kill 824|am startservice" ""
 

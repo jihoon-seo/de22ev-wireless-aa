@@ -28,6 +28,7 @@ BOOT=$(cat /proc/sys/kernel/random/boot_id)
 GPM=com.google.android.projection.sink
 AAREADY=$DATA/aa-ready
 AAGPM=$DATA/aa-gpm
+AGAIN=$DATA/cycle.again
 KICKS=2
 
 waa() { CLASSPATH=$JAR /system/bin/app_process /system/bin WaaAp "$@" 2>&1; }
@@ -92,6 +93,7 @@ kick_phase() {
             return
         fi
         [ "$N" -ge "$KICKS" ] && { say "GAVE_UP after $KICKS restarts"; return; }
+        session_now && { say "AA session running"; return; }   # a last look: never kill a session
         N=$((N+1))
         say "K2 #$N: restarting the AA sink (handshake seen, no session)"
         restart_gpm
@@ -173,15 +175,22 @@ run_cycle() {
     if [ -d "$LOCK" ]; then
         OWNER=$(cat "$LOCK/pid" 2>/dev/null)
         if [ -n "$OWNER" ] && [ -d "/proc/$OWNER" ]; then
-            say "a cycle is already running"
+            say "a cycle is already running, another one follows it"
+            touch "$AGAIN"
             return
         fi
         rm -f "$LOCK/pid"
         rmdir "$LOCK" 2>/dev/null
     fi
-    mkdir "$LOCK" 2>/dev/null || { say "a cycle is already running"; return; }
+    mkdir "$LOCK" 2>/dev/null || { say "a cycle is already running, another one follows it"; touch "$AGAIN"; return; }
     sh -c 'echo $PPID' > "$LOCK/pid"
+    rm -f "$AGAIN"
     cycle_body
+    # an ACC on while this cycle ran (it may have stopped for an ACC off in between): run again
+    while [ -f "$AGAIN" ]; do
+        rm -f "$AGAIN"
+        acc_off || cycle_body
+    done
     rm -f "$LOCK/pid"
     rmdir "$LOCK"
 }
@@ -201,12 +210,12 @@ LIVE=
 logcat -v brief -s WifiService:D waad:I AAProjection:D 2>/dev/null | while read -r LINE; do
     case "$LINE" in
         *AAProjection\(*"requestWLDeviceReadyStatusUpdate:"*"[Ready] 1"*)
-            LP=${LINE#*AAProjection(}; LP=${LP%%)*}
+            LP=${LINE#*AAProjection\(}; LP=${LP%%\)*}
             acc_off || echo "$BOOT $((LP + 0))" > "$AAREADY"   # not while the engine is off
             continue ;;
         *AAProjection\(*"<< setGpmStatus: "*)
-            LP=${LINE#*AAProjection(}; LP=${LP%%)*}; LN=${LINE##*setGpmStatus: }
-            echo "$BOOT $((LP + 0)) $((LN + 0))" > "$AAGPM"
+            LP=${LINE#*AAProjection\(}; LP=${LP%%\)*}; LN=${LINE##*setGpmStatus: }; LN=${LN%%[!0-9]*}
+            [ -n "$LN" ] && ! acc_off && echo "$BOOT $((LP + 0)) $LN" > "$AAGPM"
             continue ;;
         *AAProjection\(*) continue ;;
     esac
