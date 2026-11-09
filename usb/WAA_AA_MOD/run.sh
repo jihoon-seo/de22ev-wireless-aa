@@ -19,7 +19,7 @@ done_status() { echo "$1"; echo "$1" > "$OUT/STATUS.txt"; }
 
 ID=de22ev-wireless-aa
 UUID=3c503596-94a4-8f10-901e-d6da35861d6a
-ZIP=de22ev-wireless-aa-1.0.2.zip
+ZIP=de22ev-wireless-aa-1.1.0.zip
 PRODUCT=DE22EV.KOR.0000.V039.001.260902
 H=/system/bin/hmgapid
 LOCAL=/data/nemesis/waa-aa-mod
@@ -90,7 +90,7 @@ if [ "$MODE" = uninstall ]; then
     fi
     settings put global wifi_ap_on 0
     dump_state after
-    done_status UNINSTALLED
+    done_status UNINSTALLED_RESTART_THE_CAR
     exit 0
 fi
 
@@ -108,7 +108,8 @@ sleep 3
 dump_state after
 for F in "$SVC_LOG"; do [ -f "$F" ] && cp "$F" "$OUT/"; done
 if svc_running; then
-    done_status INSTALLED_WAAD_RUNNING
+    # waad runs on the new files now; the screen hold (hooks) loads into apps at the next start
+    done_status INSTALLED_RESTART_THE_CAR
 else
     done_status INSTALLED_BUT_WAAD_NOT_RUNNING
 fi

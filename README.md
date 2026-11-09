@@ -33,11 +33,19 @@ comes back on without a reboot:
 - makes the hotspot pair equal to **this car's own** projection pair, restarting the AP if it
   changed. The values are read from the car; none are in this package. The hotspot name and
   password shown in Settings become the same value, and the originals are backed up;
-- turns the wireless projection AP on.
+- turns the wireless projection AP on;
+- restarts the car's AA app when its boot handshake with the phone was lost (cause 3 above): when
+  the AA app's log shows a handshake (`[Ready] 1`) but no session (`<< setGpmStatus: N`) within 20 s
+  of the AP being up, at most twice, never while a wireless or wired session runs.
 
 At engine off it makes sure the AP is off, and it never turns the AP on while the engine is off.
-It does not restart the AA app: after a cold boot, toggle the phone's Bluetooth off and on and
-wireless Android Auto connects. After a short engine off/on it connects by itself.
+After a short engine off/on wireless Android Auto connects by itself.
+
+**Screen hold** (hooks in the AA app, `hooks.jar`): with the setting `screen` = `button` (default)
+wireless Android Auto connects but the car's screen stays where it is; the home screen's Android
+Auto tile opens it, and from then on that session behaves as stock. `auto` switches at once, as
+stock. Wired Android Auto always switches at once. The hooks load at the next car start; the
+setting (HMG-API app, Mods tab, "Save settings") applies from the next connection.
 
 ## Requirements
 
@@ -61,7 +69,7 @@ With the USB kit:
 
 1. Unzip it and put `NEMESIS.data`, `NEMESIS.sh` and the `WAA_AA_MOD` folder at the top of a USB stick.
 2. Start the car, wait about a minute, insert the stick and choose **Yes** in NEMESIS.
-3. `WAA_AA_MOD_*/STATUS.txt` on the stick says `INSTALLED_WAAD_RUNNING` when it worked.
+3. `WAA_AA_MOD_*/STATUS.txt` on the stick says `INSTALLED_RESTART_THE_CAR` when it worked.
 
 The first line of `WAA_AA_MOD/MODE.txt` picks the action: `install` (default), `status`
 (copies the daemon log and the AP state to the stick) or `uninstall` (removes the mod, restores

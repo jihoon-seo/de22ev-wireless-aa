@@ -58,17 +58,17 @@ order() {   # order PATTERN...: the calls appear in this order
 
 setup DE22EV.KOR.0000.V039.001.260902
 run_kit install
-if [ "$STATUS" = INSTALLED_WAAD_RUNNING ] && grep -q "engine install .* --uuid 3c503596-94a4-8f10-901e-d6da35861d6a" "$M/calls" && order "hmgapid engine install" "hmgapid enable de22ev-wireless-aa" "hmgapid service-restart de22ev-wireless-aa waad"; then
-    pass "install: install, enable, then service-restart"
+if [ "$STATUS" = INSTALLED_RESTART_THE_CAR ] && grep -q "engine install .* --uuid 3c503596-94a4-8f10-901e-d6da35861d6a" "$M/calls" && order "hmgapid engine install" "hmgapid enable de22ev-wireless-aa" "hmgapid service-restart de22ev-wireless-aa waad"; then
+    pass "install: install, enable, then service-restart; the screen hold needs a car restart"
 else fail "install" "status=$STATUS calls=$(tr '\n' ';' < "$M/calls")"; fi
-grep -q "de22ev-wireless-aa-1.0.2.zip" "$M/calls" && pass "install: ships the 1.0.2 package" || fail "install version" "$(grep 'engine install' "$M/calls")"
+grep -q "de22ev-wireless-aa-1.1.0.zip" "$M/calls" && pass "install: ships the 1.1.0 package" || fail "install version" "$(grep 'engine install' "$M/calls")"
 
 run_kit status
 [ "$STATUS" = STATUS_WRITTEN_WAAD_RUNNING ] && pass "status: daemon running" || fail "status" "$STATUS"
 
 echo ORIG > "$M/hmgapi/run/de22ev-wireless-aa/waad/credentials.bak"; : > "$M/calls"
 run_kit uninstall
-if [ "$STATUS" = UNINSTALLED ] && order "hmgapid disable de22ev-wireless-aa" "hmgapid engine remove de22ev-wireless-aa" "waa off" "waa restore" "settings put global wifi_ap_on 0"; then
+if [ "$STATUS" = UNINSTALLED_RESTART_THE_CAR ] && order "hmgapid disable de22ev-wireless-aa" "hmgapid engine remove de22ev-wireless-aa" "waa off" "waa restore" "settings put global wifi_ap_on 0"; then
     pass "uninstall: disable, remove, AP off, restore credentials, wifi_ap_on=0"
 else fail "uninstall" "status=$STATUS calls=$(tr '\n' ';' < "$M/calls")"; fi
 

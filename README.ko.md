@@ -30,10 +30,17 @@ HMG-API가 실행·감시하는 작은 root 서비스(`waad`)가 부팅 때와, 
   값은 차량에서 읽으며 이 패키지에는 들어 있지 않습니다. 설정 화면의 핫스팟 이름/암호도 같은 값이
   되며, 원래 값은 백업됩니다.
 - 무선 프로젝션 AP를 켭니다.
+- 부팅 타이밍 때문에 폰과의 협상이 버려졌으면(위 3번) 차량 AA 앱을 재시작합니다. AA 앱 로그에
+  협상(`[Ready] 1`)은 보이는데 AP가 켜지고 20초 안에 세션(`<< setGpmStatus: N`)이 없을 때만, 최대 2번,
+  무선·유선 세션이 있을 때는 하지 않습니다.
 
 시동을 끄면 AP가 꺼진 것을 확인하고, 시동이 꺼진 동안에는 AP를 켜지 않습니다.
-차량 AA 앱은 재시작하지 않습니다. 콜드 부팅 뒤에는 폰 블루투스를 껐다 켜면 무선 Android Auto가
-붙습니다. 짧게 시동을 껐다 켜면 저절로 붙습니다.
+짧게 시동을 껐다 켜면 저절로 붙습니다.
+
+**화면 유지** (AA 앱 안의 훅, `hooks.jar`): 설정 `screen`이 `button`(기본)이면 무선 Android Auto가
+연결돼도 차량 화면은 그대로이고, 홈 화면의 Android Auto를 누르면 넘어갑니다. 그 뒤 그 연결은
+순정과 같습니다. `auto`는 순정처럼 바로 넘어갑니다. 유선은 항상 바로 넘어갑니다. 훅은 다음 시동부터,
+설정(HMG-API 앱 Mods 탭, "Save settings")은 다음 연결부터 적용됩니다.
 
 ## 필요 조건
 
@@ -56,7 +63,8 @@ USB 키트로 설치:
 
 1. 압축을 풀어 `NEMESIS.data`, `NEMESIS.sh`, `WAA_AA_MOD` 폴더를 USB 최상위에 놓습니다.
 2. 시동을 켜고 1분쯤 기다린 뒤 USB를 꽂고 NEMESIS에서 **Yes**를 선택합니다.
-3. USB의 `WAA_AA_MOD_*/STATUS.txt`가 `INSTALLED_WAAD_RUNNING`이면 정상입니다.
+3. USB의 `WAA_AA_MOD_*/STATUS.txt`가 `INSTALLED_RESTART_THE_CAR`이면 정상입니다. 시동을 다시 걸면
+   화면 유지가 적용됩니다.
 
 `WAA_AA_MOD/MODE.txt` 첫 줄로 동작을 고릅니다: `install`(기본), `status`(데몬 로그와 AP 상태를 USB로
 복사), `uninstall`(모드 제거, 원래 핫스팟 이름/암호 복원, AP 끄기, `wifi_ap_on=0`).
