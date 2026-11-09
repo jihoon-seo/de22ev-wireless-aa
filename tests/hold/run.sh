@@ -8,3 +8,4 @@ native() { if command -v cygpath > /dev/null; then cygpath -w "$1"; else echo "$
 "${JAVA_BIN}javac" --release 8 -Xlint:-options -nowarn -encoding UTF-8 -d "$(native "$OUT")" \
     "$(native "$HERE/../../hook/src/de22ev/waa/ScreenHold.java")" "$(native "$HERE/ScreenHoldTest.java")"
 "${JAVA_BIN}java" -cp "$(native "$OUT")" ScreenHoldTest
+bash "$HERE/names.sh"

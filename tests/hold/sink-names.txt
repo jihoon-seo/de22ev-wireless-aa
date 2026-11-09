@@ -1,0 +1,14 @@
+# Members of the AA sink (com.google.android.projection.sink) on firmware DE22EV.KOR.0000.V039.001.260902
+# that hook/src/de22ev/waa/HoldEntry.java uses, extracted from the car's HKMC_GPM odex (class :: member).
+Lcom/google/android/projection/protocol/VideoSink; :: F VIDEO_FOCUS_NATIVE:I
+Lcom/google/android/projection/protocol/VideoSink; :: F VIDEO_FOCUS_PROJECTED:I
+Lcom/google/android/projection/service/GalConnectionSession; :: F mService:Lcom/google/android/projection/service/GalReceiverService;
+Lcom/google/android/projection/service/GalConnectionSession; :: F mSessionMode:Ljava/lang/String;
+Lcom/google/android/projection/service/GalConnectionSession; :: M setVideoFocus(IIZ)V
+Lcom/google/android/projection/service/GalReceiverService; :: M removeDialogInit()V
+Lcom/google/android/projection/service/GalReceiverService; :: M startMainActivity()V
+Lcom/google/android/projection/sink/ui/MainActivity; :: M onPause()V
+Lcom/google/android/projection/sink/ui/MainActivity; :: M onResume()V
+Lcom/google/android/projection/service/GalConnectionSession$5; :: F this$0:Lcom/google/android/projection/service/GalConnectionSession;
+Lcom/google/android/projection/service/GalConnectionSession$5; :: M onVideoFocusModeChange(II)V
+Lcom/google/android/projection/service/GalConnectionSession$5; :: M onVideoFocusRequest(II)V

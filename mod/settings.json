@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "settings": [
+    {
+      "key": "screen",
+      "type": "choice",
+      "default": "button",
+      "title": "Android Auto 화면 전환",
+      "description": "버튼: 시동을 걸면 무선 Android Auto가 연결되지만 화면은 그대로이고, 홈 화면의 Android Auto를 누르면 넘어갑니다. 바로: 연결되면 바로 Android Auto 화면으로 넘어갑니다(순정 동작). 유선 연결은 항상 바로 넘어갑니다. 다음 연결부터 적용됩니다.",
+      "options": [
+        { "value": "button", "title": "버튼을 눌러 전환 (기본)" },
+        { "value": "auto", "title": "연결되면 바로 전환" }
+      ]
+    }
+  ]
+}

@@ -37,10 +37,22 @@ for c in build/classes/*.class; do CLASSES+=("$(native "$c")"); done
 mkdir -p build/jar && cp build/dex/classes.dex build/jar/
 "$PY" tools/zipdir.py build/jar build/waaap.jar
 
+# hooks.jar: the screen hold in the AA sink (hook/src), compiled against compile-only stand-ins for
+# HMG-API's hook API and android.content.Context (hook/stubs); only de22ev/waa/* goes into the dex
+mkdir -p build/hook-classes build/hook-dex build/hook-jar
+mapfile -t HS < <(find hook/src hook/stubs -name '*.java' | sort | while IFS= read -r f; do native "$f"; done)
+"${JAVA_BIN}javac" --release 8 -Xlint:-options -nowarn -encoding UTF-8 -d "$(native build/hook-classes)" "${HS[@]}"
+HC=()
+for c in build/hook-classes/de22ev/waa/*.class; do HC+=("$(native "$c")"); done
+"${JAVA_BIN}java" -cp "$(native "$D8_JAR")" com.android.tools.r8.D8 --min-api 19 --no-desugaring --release \
+    --output "$(native build/hook-dex)" "${HC[@]}"
+cp build/hook-dex/classes.dex build/hook-jar/
+"$PY" tools/zipdir.py build/hook-jar build/hooks.jar
+
 # the mod folder
-cp mod/mod.json mod/README.en.txt mod/README.ko.txt build/mod/
+cp mod/mod.json mod/settings.json mod/README.en.txt mod/README.ko.txt build/mod/
 mkdir -p build/mod/svc && cp mod/svc/waad.sh build/mod/svc/
-cp build/waaap.jar build/mod/
+cp build/waaap.jar build/hooks.jar build/mod/
 
 # the signer: HMG-API's Signing + Json at a pinned commit, with tools/hmgsign/Engine.java
 HMG_COMMIT=4fab4376adae65b67025046539963a68fb37f76f

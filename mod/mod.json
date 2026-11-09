@@ -6,7 +6,7 @@
   "authors": [
     "local build"
   ],
-  "description": "At engine start: projection AP on, broadcasting this car's own projection credentials (the ones the AA sink sends). No AA sink restart. AP off at engine off.",
+  "description": "At engine start: projection AP on, broadcasting this car's own projection credentials (the ones the AA sink sends); the AA sink restarted when its boot handshake was lost. Wireless AA keeps the car's screen until the Android Auto tile is pressed (setting). AP off at engine off.",
   "system": {
     "model": "DE22EV",
     "region": "KOR",
@@ -22,5 +22,9 @@
       "start": "android",
       "restart": true
     }
-  ]
+  ],
+  "hooks": {
+    "jar": "hooks.jar",
+    "entry": "de22ev.waa.HoldEntry"
+  }
 }
